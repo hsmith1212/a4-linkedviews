@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+
+
+<script>
+    //loading in the data
+    const URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
+    console.log('URL:', URL);
+    d3.json(URL).then(data => {
+        const quakes = data.features.map(d => ({
+            mag: d.properties.mag,
+            place: d.properties.place,
+            time: new Date(d.properties.time),
+            lat: d.geometry.coordinates[1],
+            lon: d.geometry.coordinates[0],
+            depth: d.geometry.coordinates[2]
+        }));
+
+        //making sure loaded correctly
+        console.log(quakes[0]);
+
+        // setup for histogram
+        const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+        const width = 600;
+        const height = 400;
+
+        const svg = d3.select('#histogram')  
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        // scales 
+        const x = d3.scaleLinear()
+            .domain(d3.extent(quakes, d => d.mag)).nice()
+            .range([margin.left, width - margin.right]);
+
+        const bins = d3.histogram()
+            .domain(x.domain())
+            .thresholds(x.ticks(20))
+            (quakes.map(d => d.mag));
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(bins, d => d.length)]).nice()
+            .range([height - margin.bottom, margin.top]);
+
+        // bars
+        const bar = svg.selectAll('.bar')
+            .data(bins)
+            .enter().append('g')
+            .attr('class', 'bar')
+            .attr('transform', d => `translate(${x(d.x0)},${y(d.length)})`);
+
+        bar.append('rect')
+            .attr('x', 1)
+            .attr('width', d => Math.max(0, x(d.x1) - x(d.x0) - 1))  // prevent negative widths ->  this edit was prodivded by Claude AI
+            .attr('height', d => y(0) - y(d.length))
+            .attr('fill', 'steelblue');  
+
+        // add axes
+        svg.append('g')
+            .attr('transform', `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(20));
+
+        svg.append('g')
+            .attr('transform', `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y));
+
+        // add x axis label
+        svg.append('text')
+            .attr('x', width / 2)
+            .attr('y', height)
+            .attr('text-anchor', 'middle')
+            .text('Magnitude');
+
+        // adding map 
+        
+    });
+
+</script>
+
+<div id="map"></div>
+<div id="histogram"></div>
+
+<!-- at bottom, show data source-->
+<p>Data source: <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
+        target="_blank">USGS GeoJSON feed</a></p>
+
+
+</html>

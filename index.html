@@ -168,9 +168,11 @@
                 // if a brush selection exists, only allow tooltip for quakes inside it
                 if (currentSelection) {
                     const [s0, s1] = currentSelection;
-                    if (!(d.mag >= s0 && d.mag < s1)) return; // outside selection -> ignore
+                    if (!(d.mag >= s0 && d.mag < s1)) return; // outside selection, so ignore
                 }
                 // show tooltip with place and magnitude
+                // reference for style details: https://www.w3schools.com/css/css_tooltip.asp
+                // also learned about tool tips for a3
                 const tooltip = d3.select('#map').append('div')
                     .attr('class', 'tooltip')
                     .style('position', 'absolute')

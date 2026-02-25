@@ -8,6 +8,10 @@
     <div id="histogram"></div>
 </div>
 
+<!-- at bottom, show data source-->
+<p>Data source: <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
+        target="_blank">USGS GeoJSON feed</a></p>
+
 <!-- adding styling to the visuzalizations are side by side-->
 <!--- learned how to make side-by-side here: https://stackoverflow.com/questions/4938716/align-div-elements-side-by-side-->
 <style>
@@ -15,11 +19,15 @@
         display: flex;
         flex-wrap: wrap;
     }
-
     #map,
     #histogram {
         flex: 1 1 300px;
         margin: 10px;
+    }
+    /* add padding only to the histogram so the map stays aligned at the top */
+    #histogram {
+        padding-top: 100px;
+        box-sizing: border-box;
     }
 </style>
 
@@ -52,7 +60,7 @@
         // -- MAKING HISTOGRAM -- -----------------
         const margin = { top: 20, right: 20, bottom: 40, left: 50 };
         const width = 300;
-        const height = 500;
+        const height = 300;
 
         const svg = d3.select('#histogram')
             .append('svg')
@@ -66,7 +74,7 @@
 
         const bins = d3.histogram()
             .domain(x.domain())
-            .thresholds(x.ticks(50))
+            .thresholds(x.ticks(100)) //made a lot of buckets so it was smoother, shorter, wider
             (quakes.map(d => d.mag));
 
         const y = d3.scaleLinear()
@@ -160,9 +168,10 @@
             .attr('opacity', 0.6);
 
         // -- ADDING BRUSHING AND LINKING -- -----------------
-        // the section of histogram that is brushed will map to the earthquakes that are shown on the map
+        // references examples in assignment
+        // the section of histogram that is brushed will link to the earthquakes that are shown on the map
         const brush = d3.brushX()
-            .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+            .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]) // use histogram measures
             .on('brush end', brushed);
         
         svg.append('g')
@@ -173,27 +182,23 @@
             if (selection) {
                 const [x0, x1] = selection.map(x.invert); // get magnitude range
                 const selectedQuakes = quakes.filter(d => d.mag >= x0 && d.mag < x1);
-                console.log('Selected quakes:', selectedQuakes);
+
+                console.log('Selected quakes:', selectedQuakes); // debugging
 
                 // update map to show only selected earthquakes
                 svg2.selectAll('circle')
                     .attr('opacity', d => (d.mag >= x0 && d.mag < x1) ? 0.8 : 0.05); // highlight selected quakes, fade out others
+
             } else {
-                // if no selection, show all earthquakes
+                // if no selection, show all earthquakes equally
                 svg2.selectAll('circle')
                     .attr('opacity', 0.6);
             }
         }
-
     });
-
 </script>
 
 
-
-<!-- at bottom, show data source-->
-<p>Data source: <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
-        target="_blank">USGS GeoJSON feed</a></p>
 
 
 </html>

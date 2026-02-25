@@ -22,7 +22,10 @@ One thing I learned doing this visualization is that earthquakes can have negati
 ## Design Achievements
 * Used a matching color scale in the map and histogram to easily tell relative magnitudes
 * Removed gaps between histogram bars and created many buckets in the histogram so that the histogram is smooth and brushing can make more narrow selections
-* Visualizations appear side by side so that the map and histogram can be viewed at once. If space doesn't allow, however, visualizations can appear side by side
+* Visualizations appear side by side so that the map and histogram can be viewed at once. If space doesn't allow, however, visualizations can appear side by side. The entire grip of both visualizations is centered.
+* If the user hovers over a circle on the map, and it is part of the current selected earthquakes through the brush, a tool tip displays the location and magnitude
+* The footer includes information about the author (me!) and the data source
+* Additional styling includes font, alignment, margins, padding, and coloring
   
 
 References
@@ -35,3 +38,5 @@ From original project description:
 Additional:
 - https://d3js.org/d3-zoom
 - https://www.w3schools.com/css/css_grid.asp
+- https://www.w3schools.com/tags/tag_footer.asp
+- https://www.w3schools.com/css/css_tooltip.asp

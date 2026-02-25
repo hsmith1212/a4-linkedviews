@@ -1,6 +1,6 @@
 A4: Visualizing Earthquakes with Map and Histogram
 ===
-Link to GitHub pages:
+Link to GitHub pages: https://hsmith1212.github.io/a4-linkedviews/ 
 
 ### Overview
 

@@ -196,6 +196,7 @@
             } else {
                 // if no selection, show all earthquakes equally
                 svg2.selectAll('circle')
+                    .attr('fill', d => colorScale(d.mag))
                     .attr('opacity', 0.6)
                     .attr('stroke', 'none')
                     .attr('stroke-width', 0);

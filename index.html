@@ -1,10 +1,20 @@
 <!doctype html>
 <html lang="en">
 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+    <title>Last Month's Earthquakes</title>
+</head>
+
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+<h1>Last Month's Earthquakes</h1>
 
 <div id="vis">
     <div id="map"></div>
+    <p id="hist-desc">Click and drag on the histogram to select a magnitude range. The earthquakes in that range will be highlighted on the map.</p>
     <div id="histogram"></div>
 </div>
 
@@ -12,30 +22,10 @@
 <p>Data source: <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
         target="_blank">USGS GeoJSON feed</a></p>
 
-<!-- adding styling to the visuzalizations are side by side-->
-<!--- learned how to make side-by-side here: https://stackoverflow.com/questions/4938716/align-div-elements-side-by-side-->
-<style>
-    #vis {
-        display: flex;
-        flex-wrap: wrap;
-    }
-    #map,
-    #histogram {
-        flex: 1 1 300px;
-        margin: 10px;
-    }
-    /* add padding only to the histogram so the map stays aligned at the top */
-    #histogram {
-        padding-top: 100px;
-        box-sizing: border-box;
-    }
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/topojson@3"></script> <!-- needed to load world map data, learned how to do this from Claud AI-->
+<script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+<!-- needed to load world map data, learned how to do this from Claud AI-->
 
 <script>
-
-
     //loading in the data
     const URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
     console.log('URL:', URL);
@@ -107,12 +97,12 @@
         // add x axis label
         svg.append('text')
             .attr('x', width / 2)
-            .attr('y', height)
+            .attr('y', height - 10)
             .attr('text-anchor', 'middle')
             .text('Magnitude');
 
         // --- MAKING MAP ---------- note: learned how to do projections and paths as part of final project
-         // making seperate variables in case I want to change the size of the map and histogram differently
+        // making seperate variables in case I want to change the size of the map and histogram differently
         const margin2 = { top: 20, right: 20, bottom: 20, left: 20 };
         const width2 = 500;
         const height2 = 500;
@@ -120,21 +110,23 @@
         const svg2 = d3.select('#map')
             .append('svg')
             .attr('width', width2)
-            .attr('height', height2);
-
+            .attr('height', height2)
+            .attr('style', 'border: 1px solid black'); // add border to see map area
 
         // load world map data, because the earthquake data doesn't have country outliens
         const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
         const countries = topojson.feature(world, world.objects.countries);
 
         const projectionWorld = d3.geoMercator()
-            .fitSize([width2 - margin2.left - margin2.right, height2 - margin2.top - margin2.bottom], countries);
+            .fitSize([width2, height2], countries);
 
         const pathWorld = d3.geoPath().projection(projectionWorld);
 
-        // draw countries
-        svg2.append('g')
-            .selectAll('path')
+        // create a pan/zoom group and draw countries inside it so the whole map can be zoomed/panned
+        const mapG = svg2.append('g').attr('class', 'map-layer');
+
+        const countriesG = mapG.append('g').attr('class', 'countries');
+        countriesG.selectAll('path')
             .data(countries.features)
             .enter().append('path')
             .attr('d', pathWorld)
@@ -156,16 +148,26 @@
 
         const path = d3.geoPath().projection(projection);
 
-        // draw earthquakes
-        svg2.append('g')
-            .selectAll('circle')
+        // draw earthquakes inside the same pan/zoom group so circles scale with the map
+        const quakesG = mapG.append('g').attr('class', 'quakes');
+        quakesG.selectAll('circle')
             .data(quakes)
             .enter().append('circle')
             .attr('cx', d => projection([d.lon, d.lat])[0])
             .attr('cy', d => projection([d.lon, d.lat])[1])
-            .attr('r', 2) 
+            .attr('r', 2)
             .attr('fill', d => colorScale(d.mag))
             .attr('opacity', 0.6);
+
+        // add zoom behavior to the map SVG only (does not affect the histogram)
+        // reference: https://d3js.org/d3-zoom (also needed to make group edits above)
+        const zoom = d3.zoom()
+            .scaleExtent([1, 8])
+            .on('zoom', (event) => {
+                mapG.attr('transform', event.transform);
+            });
+
+        svg2.call(zoom);
 
         // -- ADDING BRUSHING AND LINKING -- -----------------
         // references examples in assignment
@@ -173,12 +175,12 @@
         const brush = d3.brushX()
             .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]) // use histogram measures
             .on('brush end', brushed);
-        
+
         svg.append('g')
             .attr('class', 'brush')
             .call(brush);
-        
-        function brushed({selection}) {
+
+        function brushed({ selection }) {
             if (selection) {
                 const [x0, x1] = selection.map(x.invert); // get magnitude range
                 const selectedQuakes = quakes.filter(d => d.mag >= x0 && d.mag < x1);
@@ -187,12 +189,16 @@
 
                 // update map to show only selected earthquakes
                 svg2.selectAll('circle')
-                    .attr('opacity', d => (d.mag >= x0 && d.mag < x1) ? 0.8 : 0.05); // highlight selected quakes, fade out others
-
+                    .attr('fill', d => (d.mag >= x0 && d.mag < x1) ? colorScale(d.mag) : '#ccc') // keep color based on magnitude
+                    .attr('opacity', d => (d.mag >= x0 && d.mag < x1) ? 0.8 : 0.2) // highlight selected quakes, fade out others
+                    .attr('stroke', d => (d.mag >= x0 && d.mag < x1) ? 'black' : 'none') // add stroke to selected quakes for better visibility
+                    .attr('stroke-width', d => (d.mag >= x0 && d.mag < x1) ? 0.5 : 0); // stroke width for selected quakes
             } else {
                 // if no selection, show all earthquakes equally
                 svg2.selectAll('circle')
-                    .attr('opacity', 0.6);
+                    .attr('opacity', 0.6)
+                    .attr('stroke', 'none')
+                    .attr('stroke-width', 0);
             }
         }
     });

@@ -1,0 +1,45 @@
+/* Layout: map on the left, description above histogram on the right.
+   Uses CSS Grid so #map occupies the left column and #hist-desc / #histogram
+   stack in the right column. Falls back to a single column on small screens. */
+
+/* reference for grid: https://www.w3schools.com/css/css_grid.asp */
+
+#vis {
+    display: grid;
+    grid-template-columns: 60% 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        "map hist-desc"
+        "map histogram";
+    gap: 10px;
+    align-items: start;
+}
+
+#map {
+    grid-area: map;
+    margin: 10px;
+    box-sizing: border-box;
+}
+
+#hist-desc {
+    grid-area: hist-desc;
+    margin: 10px;
+    box-sizing: border-box;
+}
+
+#histogram {
+    grid-area: histogram;
+    padding-top: 20px; /* top padding for histogram only */
+    box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+    /* stack everything vertically when the window is too small for side by side */
+    #vis {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "map"
+            "hist-desc"
+            "histogram";
+    }
+}

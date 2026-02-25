@@ -1,7 +1,15 @@
-OPTIONAL OPTIONAL OPTIONAL OPTIONAL OPTIONAL Assignment 4 - Brushing and Linking
+A4: Visualizing Earthquakes with Map and Histogram
 ===
+Link to GitHub pages:
 
-The primary aim of this assignment is to showcase your **individual** skills at supporting interactive experiences with visualizations.
+### Overview
+
+This visualization features a map of the world on the left-hand side with circles representing earthquakes. On the right-hand side, there is a histogram of the magnitudes of those same earthquakes. Brushing over the histogram will isolate earthquakes on the map whose magnitude falls in the selected range by outlining them in gray and turning all other magnitudes gray and highly transparent. Below is a screenshot and screen recording of the visualization. 
+
+![Viz screenshot](img/viz.png)
+![Viz screen recording](img/viz_recording.mp4)
+
+One thing I learned doing this visualization is that earthquakes can have negative magnitudes, who knew!
 
 ### Your Task
 

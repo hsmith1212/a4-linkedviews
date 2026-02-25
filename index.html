@@ -18,9 +18,15 @@
     <div id="histogram"></div>
 </div>
 
-<!-- at bottom, show data source-->
-<p>Data source: <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
+
+
+<!--- reference: https://www.w3schools.com/tags/tag_footer.asp -->
+<footer>
+  <p>Author: Holly Smith</p>
+  <!-- at bottom, show data source-->
+  <p>Data source: <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
         target="_blank">USGS GeoJSON feed</a></p>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
 <!-- needed to load world map data, learned how to do this from Claud AI-->
@@ -49,8 +55,8 @@
 
         // -- MAKING HISTOGRAM -- -----------------
         const margin = { top: 20, right: 20, bottom: 40, left: 50 };
-        const width = 300;
-        const height = 300;
+        const width = 400;
+        const height = 400;
 
         const svg = d3.select('#histogram')
             .append('svg')
@@ -157,7 +163,29 @@
             .attr('cy', d => projection([d.lon, d.lat])[1])
             .attr('r', 2)
             .attr('fill', d => colorScale(d.mag))
-            .attr('opacity', 0.6);
+            .attr('opacity', 0.6)
+            .on('mouseover', (event, d) => {
+                // if a brush selection exists, only allow tooltip for quakes inside it
+                if (currentSelection) {
+                    const [s0, s1] = currentSelection;
+                    if (!(d.mag >= s0 && d.mag < s1)) return; // outside selection -> ignore
+                }
+                // show tooltip with place and magnitude
+                const tooltip = d3.select('#map').append('div')
+                    .attr('class', 'tooltip')
+                    .style('position', 'absolute')
+                    .style('background', 'rgba(255, 255, 255, 0.8)')
+                    .style('padding', '5px')
+                    .style('border', '1px solid #ccc')
+                    .style('border-radius', '4px')
+                    .style('pointer-events', 'none')
+                    .html(`<strong>${d.place}</strong><br>Magnitude: ${d.mag}`)
+                    .style('left', `${event.pageX + 10}px`)
+                    .style('top', `${event.pageY + 10}px`);
+            })
+            .on('mouseout', () => {
+                d3.select('#map').selectAll('.tooltip').remove();
+            });
 
         // add zoom behavior to the map SVG only (does not affect the histogram)
         // reference: https://d3js.org/d3-zoom (also needed to make group edits above)
@@ -168,6 +196,9 @@
             });
 
         svg2.call(zoom);
+
+        // track current brushed magnitude range so tooltip only appears for selected quakes
+        let currentSelection = null; // null = no brush active
 
         // -- ADDING BRUSHING AND LINKING -- -----------------
         // references examples in assignment
@@ -183,6 +214,8 @@
         function brushed({ selection }) {
             if (selection) {
                 const [x0, x1] = selection.map(x.invert); // get magnitude range
+                currentSelection = [x0, x1];
+
                 const selectedQuakes = quakes.filter(d => d.mag >= x0 && d.mag < x1);
 
                 console.log('Selected quakes:', selectedQuakes); // debugging
@@ -195,6 +228,7 @@
                     .attr('stroke-width', d => (d.mag >= x0 && d.mag < x1) ? 0.5 : 0); // stroke width for selected quakes
             } else {
                 // if no selection, show all earthquakes equally
+                currentSelection = null;
                 svg2.selectAll('circle')
                     .attr('fill', d => colorScale(d.mag))
                     .attr('opacity', 0.6)
@@ -204,8 +238,5 @@
         }
     });
 </script>
-
-
-
 
 </html>

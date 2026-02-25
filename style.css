@@ -13,6 +13,8 @@
         "map histogram";
     gap: 10px;
     align-items: start;
+    width: min(1100px, 100%);
+    margin: 0 auto;
 }
 
 #map {
@@ -31,6 +33,7 @@
     grid-area: histogram;
     padding-top: 20px; /* top padding for histogram only */
     box-sizing: border-box;
+    align-items: center;
 }
 
 @media (max-width: 700px) {
@@ -42,4 +45,22 @@
             "hist-desc"
             "histogram";
     }
+}
+
+/* Other sytyling, just for fun! */
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1{
+    text-align: center;
 }
